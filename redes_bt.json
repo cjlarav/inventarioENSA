@@ -1,0 +1,33 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-75.215, -12.055],
+          [-75.218, -12.050],
+          [-75.220, -12.045]
+        ]
+      },
+      "properties": {
+        "name": "Red BT 1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-75.225, -12.035],
+          [-75.228, -12.030],
+          [-75.230, -12.025]
+        ]
+      },
+      "properties": {
+        "name": "Red BT 2"
+      }
+    }
+  ]
+}

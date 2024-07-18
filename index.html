@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mapa de Redes Eléctricas y Subestaciones</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <style>
+    #map {
+      height: 600px;
+    }
+    .legend {
+      background-color: white;
+      padding: 10px;
+      line-height: 1.5;
+      position: absolute;
+      bottom: 30px;
+      left: 10px;
+      z-index: 1000;
+    }
+    .triangle-icon {
+      width: 0; 
+      height: 0; 
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-bottom: 10px solid red;
+    }
+    .square-icon {
+      width: 20px;
+      height: 20px;
+      background-color: purple;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ubicación zona de inventario ENSA</h1>
+  <div id="map"></div>
+  <div class="legend">
+    <h2>Leyenda</h2>
+    <div><span style="background-color: #ff0000; display: inline-block; width: 20px; height: 10px;"></span> Red MT</div>
+    <div><span style="background-color: #0000ff; display: inline-block; width: 20px; height: 10px;"></span> Red BT</div>
+    <div><div class="triangle-icon"></div> Subestación</div>
+    <div><div class="square-icon"></div> Subestación de Potencia</div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script>
+    // Crear el mapa y establecer la vista inicial
+    var map = L.map('map').setView([-6.15593499999999, -78.247337,], 9);
+
+    // Añadir la capa de OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19
+    }).addTo(map);
+
+    // Función para cargar datos GeoJSON desde un archivo
+    function cargarDatos(url, callback) {
+      fetch(url)
+        .then(response => response.json())
+        .then(data => callback(data))
+        .catch(error => console.error('Error al cargar los datos:', error));
+    }
+
+    // Añadir redes de media tensión (MT) al mapa
+    cargarDatos('redes_mt.json', function(data) {
+      L.geoJSON(data, {
+        style: function(feature) {
+          return {color: "#ff0000", weight: 2}; // Rojo y grueso para MT
+        }
+      }).addTo(map);
+    });
+
+    // Añadir redes de baja tensión (BT) al mapa
+    cargarDatos('redes_bt.json', function(data) {
+      L.geoJSON(data, {
+        style: function(feature) {
+          return {color: "#0000ff", weight: 1}; // Azul normal para BT
+        }
+      }).addTo(map);
+    });
+
+    // Añadir subestaciones al mapa
+    cargarDatos('subestaciones.json', function(data) {
+      L.geoJSON(data, {
+        pointToLayer: function(feature, latlng) {
+          if (feature.properties.type === 'potencia') {
+            return L.marker(latlng, {icon: L.divIcon({
+              className: 'custom-icon',
+              html: '<div class="square-icon"></div>'
+            })}).bindTooltip(feature.properties.name, {permanent: true, direction: 'right'});
+          } else {
+            return L.marker(latlng, {icon: L.divIcon({
+              className: 'custom-icon',
+              html: '<div class="triangle-icon"></div>'
+            })});
+          }
+        },
+        onEachFeature: function(feature, layer) {
+          if (feature.properties && feature.properties.name && feature.properties.type !== 'potencia') {
+            layer.bindPopup(feature.properties.name);
+          }
+        }
+      }).addTo(map);
+    });
+  </script>
+</body>
+</html>
